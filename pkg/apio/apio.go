@@ -1,15 +1,17 @@
 package apio
 
 type ApioResponse[T any] struct {
-	Status string `json:"status,omitempty"`
-	Data   T      `json:"data,omitempty"`
+	Status bool `json:"status,omitempty"`
+	Data   T    `json:"data,omitempty"`
 }
 
 type ApioResponseError struct {
 	Status bool `json:"status,omitempty"`
 	Error  struct {
-		Name    string `json:"name,omitempty"`
-		Message string `json:"message,omitempty"`
+		Name       string `json:"name,omitempty"`
+		StatusCode int    `json:"statusCode"`
+		Message    string `json:"message"`
+		Code       string `json:"code,omitempty"`
 	} `json:"error,omitempty"`
 }
 

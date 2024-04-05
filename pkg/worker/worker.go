@@ -11,7 +11,7 @@ import (
 	"net/url"
 	"time"
 
-	"github.com/go-co-op/gocron"
+	"github.com/go-co-op/gocron/v2"
 )
 
 const (
@@ -24,6 +24,7 @@ const (
 
 type Job struct {
 	Uuid         string      `json:"uuid,omitempty"`
+	Data         interface{} `json:"data,omitempty"`
 	Retries      int         `json:"retries,omitempty"`
 	Priority     int         `json:"priority,omitempty"`
 	BackoffUntil string      `json:"backoffUntil,omitempty"`
@@ -135,7 +136,9 @@ type Worker struct {
 	gravityScheduling string
 	timezone          string
 	jobsChan          chan Job
-	scheduler         *gocron.Scheduler
+	scheduler         gocron.Scheduler
+	started           bool
+	stopped           bool
 }
 
 func (w *Worker) Jobs() <-chan Job {
@@ -143,6 +146,12 @@ func (w *Worker) Jobs() <-chan Job {
 }
 
 func (w *Worker) Start() error {
+	if w.started {
+		return nil
+	}
+
+	w.started = true
+
 	w.jobsChan = make(chan Job, 100)
 
 	location, err := time.LoadLocation(w.timezone)
@@ -150,9 +159,14 @@ func (w *Worker) Start() error {
 		return err
 	}
 
-	w.scheduler = gocron.NewScheduler(location)
+	s, err := gocron.NewScheduler(gocron.WithLocation(location))
+	if err != nil {
+		return err
+	}
 
-	dequeue := func() {
+	w.scheduler = s
+
+	dequeue := func(w *Worker) {
 		u, err := url.JoinPath(w.gravityUrl, "topics", w.topic, "dequeue")
 		if err != nil {
 			fmt.Println(err)
@@ -166,14 +180,24 @@ func (w *Worker) Start() error {
 		}
 		defer resp.Body.Close()
 
-		if resp.StatusCode != 200 {
-			fmt.Println("Error getting job")
-			return
-		}
-
 		body, err := io.ReadAll(resp.Body)
 		if err != nil {
 			fmt.Println(err)
+			return
+		}
+
+		if resp.StatusCode == 404 {
+			return
+		}
+
+		if resp.StatusCode != 200 {
+			var apioResp apio.ApioResponseError
+			if err := json.Unmarshal(body, &apioResp); err != nil {
+				fmt.Println("worker: Error getting job")
+			} else {
+				fmt.Println("worker:", apioResp.Error.Message)
+			}
+			w.Stop()
 			return
 		}
 
@@ -189,18 +213,21 @@ func (w *Worker) Start() error {
 		w.jobsChan <- job
 	}
 
-	_, err = w.scheduler.CronWithSeconds(w.gravityScheduling).Do(dequeue)
-	if err != nil {
-		return err
-	}
-	w.scheduler.StartAsync()
+	_, _ = w.scheduler.NewJob(gocron.CronJob(w.gravityScheduling, true), gocron.NewTask(dequeue, w))
+	w.scheduler.Start()
 
 	return nil
 }
 
 func (w *Worker) Stop() {
-	w.scheduler.Stop()
+	if w.stopped {
+		return
+	}
+	w.stopped = true
+
+	w.scheduler.Shutdown()
 	w.scheduler = nil
+
 	close(w.jobsChan)
 }
 
@@ -248,5 +275,7 @@ func New(topic string, gravityUrl string, gravityScheduling string, timezone str
 		gravityUrl:        gravityUrl,
 		gravityScheduling: gravityScheduling,
 		timezone:          timezone,
+		stopped:           false,
+		started:           false,
 	}
 }

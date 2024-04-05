@@ -4,7 +4,7 @@ Helps you implement gravity job workers:
 
 #### Listen jobs
 ```golang
-worker := gravityworker.New("project.resource.action", "http://gravity:7000", "* * * * *", "Europe/Rome")
+worker := gravityworker.New("project.resource.action", "http://gravity:7000", "* * * * * *", "Europe/Rome")
 
 if err := w.Start(); err != nil {
   t.Fatal(err)

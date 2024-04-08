@@ -1,0 +1,9 @@
+stages:
+  - test
+
+lint:
+  stage: test
+  image: golangci/golangci-lint:v1.57.2-alpine
+  script: 
+    - apk update && apk --no-cache add git jq bash
+    - golangci-lint run

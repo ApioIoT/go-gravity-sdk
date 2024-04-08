@@ -35,7 +35,7 @@ func main() {
 				fmt.Println(err)
 			}
 		} else {
-			if err := j.Complete(nil); err != nil {
+			if err := j.Return(); err != nil {
 				fmt.Println(err)
 			}
 		}

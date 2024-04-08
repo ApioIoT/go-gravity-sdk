@@ -9,6 +9,7 @@ worker := gravityworker.New("project.resource.action", "http://gravity:7000", "*
 if err := w.Start(); err != nil {
   t.Fatal(err)
 }
+defer w.Stop()
 
 for job := range worker.Jobs() {
   job.Complete(nil)

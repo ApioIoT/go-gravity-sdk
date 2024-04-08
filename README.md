@@ -12,9 +12,9 @@ if err := worker.Start(); err != nil {
 defer worker.Stop()
 
 for job := range worker.Jobs() {
-  job.Complete(nil)
-  job.Fail(nil)
-  job.Return()
+  job.Complete(nil) // For complete a job
+  job.Fail(nil)     // For fail a job
+  job.Return()      // For return a job
 }
 ```
 

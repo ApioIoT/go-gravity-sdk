@@ -16,8 +16,6 @@ for job := range worker.Jobs() {
   job.Fail(nil)
   job.Return()
 }
-
-worker.Stop()
 ```
 
 #### Enqueue job

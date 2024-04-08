@@ -6,10 +6,10 @@ Helps you implement gravity job workers:
 ```golang
 worker := gravityworker.New("project.resource.action", "http://gravity:7000", "* * * * * *", "Europe/Rome")
 
-if err := w.Start(); err != nil {
+if err := worker.Start(); err != nil {
   t.Fatal(err)
 }
-defer w.Stop()
+defer worker.Stop()
 
 for job := range worker.Jobs() {
   job.Complete(nil)

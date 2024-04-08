@@ -7,7 +7,7 @@ Helps you implement gravity job workers:
 worker := gravityworker.New("project.resource.action", "http://gravity:7000", "* * * * * *", "Europe/Rome")
 
 if err := worker.Start(); err != nil {
-  t.Fatal(err)
+  log.Fatal(err)
 }
 defer worker.Stop()
 

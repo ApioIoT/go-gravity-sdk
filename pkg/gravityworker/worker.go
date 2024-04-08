@@ -1,7 +1,6 @@
 package gravityworker
 
 import (
-	"apio/go-gravity-worker/pkg/apio"
 	"bytes"
 	"encoding/json"
 	"errors"
@@ -9,11 +8,16 @@ import (
 	"io"
 	"net/http"
 	"net/url"
+	"os"
+	"sync"
 	"time"
 
 	"github.com/go-co-op/gocron/v2"
 )
 
+var m sync.Mutex
+
+// Job Status
 const (
 	QUEUED      = "queued"
 	IN_PROGRESS = "in_progress"
@@ -44,7 +48,7 @@ func (j *Job) Complete(out interface{}) error {
 		return err
 	}
 
-	var body apio.JobRequest
+	var body JobRequest
 	body.Output = out
 
 	jBody, err := json.Marshal(body)
@@ -78,7 +82,7 @@ func (j *Job) Fail(customError interface{}) error {
 		return err
 	}
 
-	var body apio.JobRequest
+	var body JobRequest
 	body.Error = customError
 
 	jBody, err := json.Marshal(body)
@@ -166,54 +170,22 @@ func (w *Worker) Start() error {
 
 	w.scheduler = s
 
-	dequeue := func(w *Worker) {
-		u, err := url.JoinPath(w.gravityUrl, "topics", w.topic, "dequeue")
+	task := func() {
+		job, err := w.Dequeue()
 		if err != nil {
-			fmt.Println(err)
-			return
-		}
+			if apioErr, ok := err.(*ApioError); ok && apioErr.StatusCode != 404 {
+				fmt.Fprintln(os.Stderr, err)
 
-		resp, err := http.Post(u, "application/json", nil)
-		if err != nil {
-			fmt.Println(err)
-			return
-		}
-		defer resp.Body.Close()
-
-		body, err := io.ReadAll(resp.Body)
-		if err != nil {
-			fmt.Println(err)
-			return
-		}
-
-		if resp.StatusCode == 404 {
-			return
-		}
-
-		if resp.StatusCode != 200 {
-			var apioResp apio.ApioResponseError
-			if err := json.Unmarshal(body, &apioResp); err != nil {
-				fmt.Println("worker: Error getting job")
-			} else {
-				fmt.Println("worker:", apioResp.Error.Message)
+				m.Lock()
+				w.Stop()
+				m.Unlock()
 			}
-			w.Stop()
-			return
+		} else {
+			w.jobsChan <- job
 		}
-
-		var apioResp apio.ApioResponse[Job]
-		if err := json.Unmarshal(body, &apioResp); err != nil {
-			fmt.Println(err)
-			return
-		}
-
-		job := apioResp.Data
-		job.gravityUrl = w.gravityUrl
-
-		w.jobsChan <- job
 	}
 
-	_, _ = w.scheduler.NewJob(gocron.CronJob(w.gravityScheduling, true), gocron.NewTask(dequeue, w))
+	_, _ = w.scheduler.NewJob(gocron.CronJob(w.gravityScheduling, true), gocron.NewTask(task))
 	w.scheduler.Start()
 
 	return nil
@@ -225,10 +197,12 @@ func (w *Worker) Stop() {
 	}
 	w.stopped = true
 
-	w.scheduler.Shutdown()
-	w.scheduler = nil
-
 	close(w.jobsChan)
+
+	if err := w.scheduler.Shutdown(); err != nil {
+		fmt.Fprintln(os.Stderr, err)
+	}
+	w.scheduler = nil
 }
 
 func (w *Worker) Enqueue(payload interface{}) (Job, error) {
@@ -257,8 +231,44 @@ func (w *Worker) Enqueue(payload interface{}) (Job, error) {
 		return Job{}, err
 	}
 
-	var apioResp apio.ApioResponse[Job]
+	var apioResp JobResponse
 
+	if err := json.Unmarshal(body, &apioResp); err != nil {
+		return Job{}, err
+	}
+
+	job := apioResp.Data
+	job.gravityUrl = w.gravityUrl
+
+	return job, nil
+}
+
+func (w *Worker) Dequeue() (Job, error) {
+	u, err := url.JoinPath(w.gravityUrl, "topics", w.topic, "dequeue")
+	if err != nil {
+		return Job{}, err
+	}
+
+	resp, err := http.Post(u, "application/json", nil)
+	if err != nil {
+		return Job{}, err
+	}
+	defer resp.Body.Close()
+
+	body, err := io.ReadAll(resp.Body)
+	if err != nil {
+		return Job{}, err
+	}
+
+	if resp.StatusCode != 200 {
+		var apioResp ErrorResponse
+		if err := json.Unmarshal(body, &apioResp); err != nil {
+			return Job{}, NewApioError(resp.StatusCode, "worker: Error getting job")
+		}
+		return Job{}, NewApioError(resp.StatusCode, fmt.Sprintf("worker: %s", apioResp.Error.Message))
+	}
+
+	var apioResp JobResponse
 	if err := json.Unmarshal(body, &apioResp); err != nil {
 		return Job{}, err
 	}

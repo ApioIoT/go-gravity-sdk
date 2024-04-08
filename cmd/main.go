@@ -1,7 +1,7 @@
 package main
 
 import (
-	gravityworker "apio/go-gravity-worker/pkg/worker"
+	"apio/go-gravity-worker/pkg/gravityworker"
 	"encoding/json"
 	"fmt"
 	"log"

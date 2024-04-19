@@ -185,8 +185,19 @@ func (w *Worker) Start() error {
 		}
 	}
 
-	_, _ = w.scheduler.NewJob(gocron.CronJob(w.gravityScheduling, true), gocron.NewTask(task))
+	j, err := w.scheduler.NewJob(gocron.CronJob(w.gravityScheduling, true), gocron.NewTask(task))
+	if err != nil {
+		return err
+	}
+
 	w.scheduler.Start()
+
+	if err := j.RunNow(); err != nil {
+		if err := w.scheduler.Shutdown(); err != nil {
+			return err
+		}
+		return err
+	}
 
 	return nil
 }

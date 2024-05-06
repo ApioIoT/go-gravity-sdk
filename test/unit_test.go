@@ -11,12 +11,9 @@ const (
 	GRAVITY_TOPIC = "first-topic"
 )
 
-type payload struct {
-	Message string `json:"message"`
-}
-
 func TestConnection(t *testing.T) {
 	worker := gravityworker.New(GRAVITY_URL)
+
 	if err := worker.Ping(); err != nil {
 		t.Fatal(err)
 	}
@@ -24,12 +21,14 @@ func TestConnection(t *testing.T) {
 
 func TestEnqueue(t *testing.T) {
 	worker := gravityworker.New(GRAVITY_URL)
+
 	topic, err := worker.Topic(GRAVITY_TOPIC, true)
 	if err != nil {
 		t.Fatal(err)
 	}
-	if err != nil {
-		t.Fatal(err)
+
+	type payload struct {
+		Message string `json:"message"`
 	}
 
 	if _, err := topic.Enqueue(payload{Message: "Job for complete"}); err != nil {
@@ -45,10 +44,8 @@ func TestEnqueue(t *testing.T) {
 
 func TestComplete(t *testing.T) {
 	worker := gravityworker.New(GRAVITY_URL)
+
 	topic, err := worker.Topic(GRAVITY_TOPIC, true)
-	if err != nil {
-		t.Fatal(err)
-	}
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -65,10 +62,8 @@ func TestComplete(t *testing.T) {
 
 func TestFail(t *testing.T) {
 	worker := gravityworker.New(GRAVITY_URL)
+
 	topic, err := worker.Topic(GRAVITY_TOPIC, true)
-	if err != nil {
-		t.Fatal(err)
-	}
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -85,10 +80,8 @@ func TestFail(t *testing.T) {
 
 func TestRead(t *testing.T) {
 	worker := gravityworker.New(GRAVITY_URL)
+
 	topic, err := worker.Topic(GRAVITY_TOPIC, true)
-	if err != nil {
-		t.Fatal(err)
-	}
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -98,12 +91,17 @@ func TestRead(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	res, ok := job.Data.(payload)
+	data, ok := job.Data.(map[string]interface{})
 	if !ok {
-		t.Fatal("Invalid read data")
+		t.Fatal("Can't cast response")
 	}
 
-	if !strings.HasPrefix(res.Message, "Job") {
+	message, ok := data["message"].(string)
+	if !ok {
+		t.Fatal("Can't cast response")
+	}
+
+	if !strings.HasPrefix(message, "Job") {
 		t.Fatal("Invalid read data")
 	}
 }

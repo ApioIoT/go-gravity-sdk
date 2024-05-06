@@ -16,7 +16,7 @@ if err := gravity.Ping(); err != nil {
   log.Fatal(err)
 }
 
-// Setup a topic (se true on the second parameter create a topic if not exists)
+// Setup a topic (set true on the second parameter create a topic if not exists)
 topic, err := gravity.Topic("project.resource.action", true)
 if err != nil {
   log.Fatal(err)

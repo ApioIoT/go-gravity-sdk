@@ -2,30 +2,58 @@
 
 Helps you implement gravity job workers:
 
+#### Install
+```bash
+  go get 
+```
+
 #### Listen jobs
 ```golang
-worker := gravityworker.New("project.resource.action", "http://gravity:7000", "* * * * * *", "Europe/Rome")
-
-if err := worker.Start(); err != nil {
+worker, err := gravityworker.New("http://localhost:10005", "project.resource.action", true)
+if err != nil {
   log.Fatal(err)
 }
-defer worker.Stop()
 
-for job := range worker.Jobs() {
-  job.Complete(nil) // For complete a job
-  job.Fail(nil)     // For fail a job
-  job.Return()      // For return a job
+jobs, cancel, err := worker.Listen("* * * * * *", "Europe/Rome")
+if err != nil {
+  log.Fatal(err)
+}
+defer func() {
+  if err := cancel(); err != nil {
+    log.Fatal(err)
+  }
+}()
+
+for job := range jobs {
+  // For complete a job
+  if err := worker.Complete(job, nil); err != nil {
+    log.Fatal(err)
+  } 
+  
+  // For fail a job
+  if err := worker.Fail(job, nil); err != nil {
+    log.Fatal(err)
+  } 
+  
+  // For return a job
+  if err := worker.Return(job); err != nil {
+    log.Fatal(err)
+  } 
 }
 ```
 
 #### Enqueue job
 ```golang
 type Payload struct {
-	Message string `json:"message"`
+  Message string `json:"message"`
 }
 
-worker := gravityworker.New("project.resource.action", "http://gravity:7000", "* * * * *", "Europe/Rome")
-worker.Enqueue(Payload{
-  Message: "ciao",
-})
+worker, err := gravityworker.New("http://gravity:7000", "project.resource.action", true)
+if err != nil {
+  log.Fatal(err)
+}
+
+if err := worker.Enqueue(Payload{ Message: "ciao" }); err != nil {
+  log.Fatal(err)
+}
 ```

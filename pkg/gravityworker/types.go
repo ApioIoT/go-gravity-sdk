@@ -1,5 +1,34 @@
 package gravityworker
 
+import (
+	"errors"
+	"time"
+)
+
+// Job Status
+const (
+	QUEUED      = "queued"
+	IN_PROGRESS = "in_progress"
+	COMPLETED   = "completed"
+	FAILED      = "failed"
+	SKIPPED     = "skipped"
+)
+
+type Job struct {
+	Uuid         string      `json:"uuid,omitempty"`
+	Data         interface{} `json:"data,omitempty"`
+	Retries      int         `json:"retries,omitempty"`
+	Priority     int         `json:"priority,omitempty"`
+	BackoffUntil string      `json:"backoffUntil,omitempty"`
+	Topic        string      `json:"topic,omitempty"`
+	Status       string      `json:"status,omitempty"`
+	WorkflowId   string      `json:"workflowId,omitempty"`
+	Output       interface{} `json:"output,omitempty"`
+	Error        interface{} `json:"error,omitempty"`
+	CompletedAt  time.Time   `json:"completedAt,omitempty"`
+	StartedAt    time.Time   `json:"startedAt,omitempty"`
+}
+
 type JobResponse struct {
 	Status bool `json:"status,omitempty"`
 	Data   Job  `json:"data,omitempty"`
@@ -8,6 +37,10 @@ type JobResponse struct {
 type JobRequest struct {
 	Error  interface{} `json:"error,omitempty"`
 	Output interface{} `json:"out,omitempty"`
+}
+
+type TopicRequest struct {
+	Uuid string `json:"uuid"`
 }
 
 type ErrorResponse struct {
@@ -31,4 +64,8 @@ func (e *ApioError) Error() string {
 
 func NewApioError(statusCode int, message string) *ApioError {
 	return &ApioError{StatusCode: statusCode, Message: message}
+}
+
+func dummyFunc() error {
+	return errors.New("gravity worker: called stop function on unstarted worker")
 }

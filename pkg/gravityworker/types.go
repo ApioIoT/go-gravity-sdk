@@ -14,7 +14,7 @@ const (
 	SKIPPED     = "skipped"
 )
 
-type Job struct {
+type job struct {
 	Uuid         string      `json:"uuid,omitempty"`
 	Data         interface{} `json:"data,omitempty"`
 	Retries      int         `json:"retries,omitempty"`
@@ -29,21 +29,21 @@ type Job struct {
 	StartedAt    time.Time   `json:"startedAt,omitempty"`
 }
 
-type JobResponse struct {
+type jobResponse struct {
 	Status bool `json:"status,omitempty"`
-	Data   Job  `json:"data,omitempty"`
+	Data   job  `json:"data,omitempty"`
 }
 
-type JobRequest struct {
+type jobRequest struct {
 	Error  interface{} `json:"error,omitempty"`
 	Output interface{} `json:"out,omitempty"`
 }
 
-type TopicRequest struct {
+type topicRequest struct {
 	Uuid string `json:"uuid"`
 }
 
-type ErrorResponse struct {
+type errorResponse struct {
 	Status bool `json:"status,omitempty"`
 	Error  struct {
 		Name       string `json:"name,omitempty"`
@@ -53,17 +53,17 @@ type ErrorResponse struct {
 	} `json:"error,omitempty"`
 }
 
-type ApioError struct {
+type apioError struct {
 	StatusCode int
 	Message    string
 }
 
-func (e *ApioError) Error() string {
+func (e *apioError) Error() string {
 	return e.Message
 }
 
-func NewApioError(statusCode int, message string) *ApioError {
-	return &ApioError{StatusCode: statusCode, Message: message}
+func newApioError(statusCode int, message string) *apioError {
+	return &apioError{StatusCode: statusCode, Message: message}
 }
 
 func dummyFunc() error {

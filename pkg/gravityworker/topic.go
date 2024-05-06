@@ -14,12 +14,12 @@ import (
 	"github.com/go-co-op/gocron/v2"
 )
 
-type Topic struct {
+type topic struct {
 	name       string
 	gravityUrl string
 }
 
-func (t *Topic) Enqueue(payload interface{}) (*Job, error) {
+func (t *topic) Enqueue(payload interface{}) (*job, error) {
 	bPayload, err := json.Marshal(payload)
 	if err != nil {
 		return nil, err
@@ -45,7 +45,7 @@ func (t *Topic) Enqueue(payload interface{}) (*Job, error) {
 		return nil, err
 	}
 
-	var apioResp JobResponse
+	var apioResp jobResponse
 
 	if err := json.Unmarshal(body, &apioResp); err != nil {
 		return nil, err
@@ -54,7 +54,7 @@ func (t *Topic) Enqueue(payload interface{}) (*Job, error) {
 	return &apioResp.Data, nil
 }
 
-func (t *Topic) Dequeue() (*Job, error) {
+func (t *topic) Dequeue() (*job, error) {
 	u, err := url.JoinPath(t.gravityUrl, "topics", t.name, "dequeue")
 	if err != nil {
 		return nil, err
@@ -72,14 +72,14 @@ func (t *Topic) Dequeue() (*Job, error) {
 	}
 
 	if resp.StatusCode >= 400 {
-		var apioResp ErrorResponse
+		var apioResp errorResponse
 		if err := json.Unmarshal(body, &apioResp); err != nil {
-			return nil, NewApioError(resp.StatusCode, "gravity worker: Error getting job")
+			return nil, newApioError(resp.StatusCode, "gravity worker: Error getting job")
 		}
-		return nil, NewApioError(resp.StatusCode, fmt.Sprintf("gravity worker: %s", apioResp.Error.Message))
+		return nil, newApioError(resp.StatusCode, fmt.Sprintf("gravity worker: %s", apioResp.Error.Message))
 	}
 
-	var apioResp JobResponse
+	var apioResp jobResponse
 	if err := json.Unmarshal(body, &apioResp); err != nil {
 		return nil, err
 	}
@@ -87,8 +87,8 @@ func (t *Topic) Dequeue() (*Job, error) {
 	return &apioResp.Data, nil
 }
 
-func (t *Topic) Listen(scheduling string, timezone string) (chan *Job, func() error, error) {
-	jobsChan := make(chan *Job, 100)
+func (t *topic) Listen(scheduling string, timezone string) (chan *job, func() error, error) {
+	jobsChan := make(chan *job, 100)
 
 	location, err := time.LoadLocation(timezone)
 	if err != nil {
@@ -103,7 +103,7 @@ func (t *Topic) Listen(scheduling string, timezone string) (chan *Job, func() er
 	task := func() {
 		job, err := t.Dequeue()
 		if err != nil {
-			apioErr, ok := err.(*ApioError)
+			apioErr, ok := err.(*apioError)
 			if !ok || apioErr.StatusCode != 404 {
 				fmt.Fprintln(os.Stderr, err)
 			}

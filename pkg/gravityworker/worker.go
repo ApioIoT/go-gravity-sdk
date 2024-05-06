@@ -11,17 +11,17 @@ import (
 	"time"
 )
 
-type Worker struct {
+type worker struct {
 	url string
 }
 
-func New(url string) Worker {
-	return Worker{
+func New(url string) worker {
+	return worker{
 		url: url,
 	}
 }
 
-func (w *Worker) Ping() error {
+func (w *worker) Ping() error {
 	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
 	defer cancel()
 
@@ -43,9 +43,9 @@ func (w *Worker) Ping() error {
 	return nil
 }
 
-func (w *Worker) Topic(name string, createTopic bool) (*Topic, error) {
+func (w *worker) Topic(name string, createTopic bool) (*topic, error) {
 	if createTopic {
-		body, err := json.Marshal(TopicRequest{Uuid: name})
+		body, err := json.Marshal(topicRequest{Uuid: name})
 		if err != nil {
 			return nil, err
 		}
@@ -67,7 +67,7 @@ func (w *Worker) Topic(name string, createTopic bool) (*Topic, error) {
 				return nil, err
 			}
 
-			var apioErr ApioError
+			var apioErr apioError
 
 			if err := json.Unmarshal(b, &apioErr); err != nil {
 				return nil, err
@@ -77,13 +77,13 @@ func (w *Worker) Topic(name string, createTopic bool) (*Topic, error) {
 		}
 	}
 
-	return &Topic{
+	return &topic{
 		name:       name,
 		gravityUrl: w.url,
 	}, nil
 }
 
-func (w *Worker) Complete(job *Job, out interface{}) error {
+func (w *worker) Complete(job *job, out interface{}) error {
 	if job == nil {
 		return errors.New("gravity worker: can't complete null job")
 	}
@@ -93,7 +93,7 @@ func (w *Worker) Complete(job *Job, out interface{}) error {
 		return err
 	}
 
-	var body JobRequest
+	var body jobRequest
 	body.Output = out
 
 	jBody, err := json.Marshal(body)
@@ -121,7 +121,7 @@ func (w *Worker) Complete(job *Job, out interface{}) error {
 	return nil
 }
 
-func (w *Worker) Fail(job *Job, customError interface{}) error {
+func (w *worker) Fail(job *job, customError interface{}) error {
 	if job == nil {
 		return errors.New("gravity worker: can't fail null job")
 	}
@@ -131,7 +131,7 @@ func (w *Worker) Fail(job *Job, customError interface{}) error {
 		return err
 	}
 
-	var body JobRequest
+	var body jobRequest
 	body.Error = customError
 
 	jBody, err := json.Marshal(body)
@@ -159,7 +159,7 @@ func (w *Worker) Fail(job *Job, customError interface{}) error {
 	return nil
 }
 
-func (w *Worker) Return(job *Job) error {
+func (w *worker) Return(job *job) error {
 	if job == nil {
 		return errors.New("gravity worker: can't return null job")
 	}

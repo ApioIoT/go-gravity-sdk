@@ -16,40 +16,44 @@ type payload struct {
 }
 
 func TestConnection(t *testing.T) {
-	worker, err := gravityworker.New(GRAVITY_URL, GRAVITY_TOPIC, true)
-	if err != nil {
-		t.Fatal(err)
-	}
-
+	worker := gravityworker.New(GRAVITY_URL)
 	if err := worker.Ping(); err != nil {
 		t.Fatal(err)
 	}
 }
 
 func TestEnqueue(t *testing.T) {
-	worker, err := gravityworker.New(GRAVITY_URL, GRAVITY_TOPIC, true)
+	worker := gravityworker.New(GRAVITY_URL)
+	topic, err := worker.Topic(GRAVITY_TOPIC, true)
+	if err != nil {
+		t.Fatal(err)
+	}
 	if err != nil {
 		t.Fatal(err)
 	}
 
-	if _, err := worker.Enqueue(payload{Message: "Job for complete"}); err != nil {
+	if _, err := topic.Enqueue(payload{Message: "Job for complete"}); err != nil {
 		t.Fatal(err)
 	}
-	if _, err := worker.Enqueue(payload{Message: "Job for fail"}); err != nil {
+	if _, err := topic.Enqueue(payload{Message: "Job for fail"}); err != nil {
 		t.Fatal(err)
 	}
-	if _, err := worker.Enqueue(payload{Message: "Job for read"}); err != nil {
+	if _, err := topic.Enqueue(payload{Message: "Job for read"}); err != nil {
 		t.Fatal(err)
 	}
 }
 
 func TestComplete(t *testing.T) {
-	worker, err := gravityworker.New(GRAVITY_URL, GRAVITY_TOPIC, true)
+	worker := gravityworker.New(GRAVITY_URL)
+	topic, err := worker.Topic(GRAVITY_TOPIC, true)
+	if err != nil {
+		t.Fatal(err)
+	}
 	if err != nil {
 		t.Fatal(err)
 	}
 
-	job, err := worker.Dequeue()
+	job, err := topic.Dequeue()
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -60,12 +64,16 @@ func TestComplete(t *testing.T) {
 }
 
 func TestFail(t *testing.T) {
-	worker, err := gravityworker.New(GRAVITY_URL, GRAVITY_TOPIC, true)
+	worker := gravityworker.New(GRAVITY_URL)
+	topic, err := worker.Topic(GRAVITY_TOPIC, true)
+	if err != nil {
+		t.Fatal(err)
+	}
 	if err != nil {
 		t.Fatal(err)
 	}
 
-	job, err := worker.Dequeue()
+	job, err := topic.Dequeue()
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -76,12 +84,16 @@ func TestFail(t *testing.T) {
 }
 
 func TestRead(t *testing.T) {
-	worker, err := gravityworker.New(GRAVITY_URL, GRAVITY_TOPIC, true)
+	worker := gravityworker.New(GRAVITY_URL)
+	topic, err := worker.Topic(GRAVITY_TOPIC, true)
+	if err != nil {
+		t.Fatal(err)
+	}
 	if err != nil {
 		t.Fatal(err)
 	}
 
-	job, err := worker.Dequeue()
+	job, err := topic.Dequeue()
 	if err != nil {
 		t.Fatal(err)
 	}

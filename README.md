@@ -7,11 +7,18 @@ Helps you implement gravity job workers:
 go get 
 ```
 
-#### Test Connection
+#### Base setup
 ```golang
 gravity := gravityworker.New("http://localhost:7000")
 
+// Test connection
 if err := gravity.Ping(); err != nil {
+  log.Fatal(err)
+}
+
+// Setup a topic (se true on the second parameter create a topic if not exists)
+topic, err := gravity.Topic("project.resource.action", true)
+if err != nil {
   log.Fatal(err)
 }
 ```
@@ -22,27 +29,21 @@ type Payload struct {
   Message string `json:"message"`
 }
 
-gravity := gravityworker.New("http://localhost:7000")
-
-topic, err := gravity.Topic("project.resource.action", true)
-if err != nil {
-  log.Fatal(err)
-}
-
 if err := topic.Enqueue(Payload{ Message: "ciao" }); err != nil {
   log.Fatal(err)
 }
 ```
 
+#### Dequeue a job
+```golang
+job, err := topic.Dequeue()
+if err != nil {
+  t.Fatal(err)
+}
+```
+
 #### Listen for a job
 ```golang
-gravity := gravityworker.New("http://localhost:7000")
-
-topic, err := gravity.Topic("project.resource.action", true)
-if err != nil {
-  log.Fatal(err)
-}
-
 jobs, cancel, err := topic.Listen("* * * * * *", "Europe/Rome")
 if err != nil {
   log.Fatal(err)
@@ -58,33 +59,23 @@ for job := range jobs {
 }
 ```
 
-#### Complete, Fail and Return
+#### Complete a job
 ```golang
-gravity := gravityworker.New("http://localhost:7000")
-
-topic, err := gravity.Topic("project.resource.action", true)
-if err != nil {
-  log.Fatal(err)
-}
-
-job, err := topic.Dequeue()
-if err != nil {
-  t.Fatal(err)
-}
-
-// For Complete
 if err := gravity.Complete(job, nil); err != nil {
   log.Fatal(err)
 } 
+```
 
-// For Fail
+#### Fail a job
+```golang
 if err := gravity.Fail(job, nil); err != nil {
   log.Fatal(err)
-} 
+}
+```
 
-// For Return
+#### Return a job
+```golang
 if err := gravity.Return(job); err != nil {
   log.Fatal(err)
 } 
-
 ```

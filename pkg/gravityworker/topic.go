@@ -36,7 +36,7 @@ func (t *topic) Enqueue(payload interface{}) (*job, error) {
 	}
 	defer resp.Body.Close()
 
-	if resp.StatusCode >= 400 {
+	if resp.StatusCode != 200 && resp.StatusCode != 409 {
 		return nil, errors.New("gravity worker: error adding job")
 	}
 

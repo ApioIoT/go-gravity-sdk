@@ -61,7 +61,7 @@ func (w *worker) Topic(name string, createTopic bool) (*topic, error) {
 		}
 		defer resp.Body.Close()
 
-		if resp.StatusCode >= 400 {
+		if resp.StatusCode != 200 && resp.StatusCode != 409 {
 			b, err := io.ReadAll(resp.Body)
 			if err != nil {
 				return nil, err

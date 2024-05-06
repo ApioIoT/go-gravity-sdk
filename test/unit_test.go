@@ -105,3 +105,16 @@ func TestRead(t *testing.T) {
 		t.Fatal("Invalid read data")
 	}
 }
+
+func TestSchedules(t *testing.T) {
+	worker := gravityworker.New(GRAVITY_URL)
+
+	topic, err := worker.Topic(GRAVITY_TOPIC, true)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	if err := topic.AddSchedule("*/5 * * * * *", "Europe/Rome", true, false, 0); err != nil {
+		t.Fatal(err)
+	}
+}

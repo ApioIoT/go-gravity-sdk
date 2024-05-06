@@ -11,21 +11,21 @@ import (
 	"time"
 )
 
-type worker struct {
+type gravity struct {
 	url string
 }
 
-func New(url string) worker {
-	return worker{
+func New(url string) gravity {
+	return gravity{
 		url: url,
 	}
 }
 
-func (w *worker) Ping() error {
+func (g *gravity) Ping() error {
 	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
 	defer cancel()
 
-	req, err := http.NewRequestWithContext(ctx, http.MethodGet, w.url, nil)
+	req, err := http.NewRequestWithContext(ctx, http.MethodGet, g.url, nil)
 	if err != nil {
 		return err
 	}
@@ -43,14 +43,14 @@ func (w *worker) Ping() error {
 	return nil
 }
 
-func (w *worker) Topic(name string, createTopic bool) (*topic, error) {
+func (g *gravity) Topic(name string, createTopic bool) (*topic, error) {
 	if createTopic {
 		body, err := json.Marshal(topicRequest{Uuid: name})
 		if err != nil {
 			return nil, err
 		}
 
-		u, err := url.JoinPath(w.url, "topics")
+		u, err := url.JoinPath(g.url, "topics")
 		if err != nil {
 			return nil, err
 		}
@@ -79,16 +79,16 @@ func (w *worker) Topic(name string, createTopic bool) (*topic, error) {
 
 	return &topic{
 		name:       name,
-		gravityUrl: w.url,
+		gravityUrl: g.url,
 	}, nil
 }
 
-func (w *worker) Complete(job *job, out interface{}) error {
+func (g *gravity) Complete(job *job, out interface{}) error {
 	if job == nil {
 		return errors.New("gravity worker: can't complete null job")
 	}
 
-	u, err := url.JoinPath(w.url, "jobs", job.Uuid, "complete")
+	u, err := url.JoinPath(g.url, "jobs", job.Uuid, "complete")
 	if err != nil {
 		return err
 	}
@@ -121,12 +121,12 @@ func (w *worker) Complete(job *job, out interface{}) error {
 	return nil
 }
 
-func (w *worker) Fail(job *job, customError interface{}) error {
+func (g *gravity) Fail(job *job, customError interface{}) error {
 	if job == nil {
 		return errors.New("gravity worker: can't fail null job")
 	}
 
-	u, err := url.JoinPath(w.url, "jobs", job.Uuid, "fail")
+	u, err := url.JoinPath(g.url, "jobs", job.Uuid, "fail")
 	if err != nil {
 		return err
 	}
@@ -159,12 +159,12 @@ func (w *worker) Fail(job *job, customError interface{}) error {
 	return nil
 }
 
-func (w *worker) Return(job *job) error {
+func (g *gravity) Return(job *job) error {
 	if job == nil {
 		return errors.New("gravity worker: can't return null job")
 	}
 
-	u, err := url.JoinPath(w.url, "jobs", job.Uuid, "return")
+	u, err := url.JoinPath(g.url, "jobs", job.Uuid, "return")
 	if err != nil {
 		return err
 	}

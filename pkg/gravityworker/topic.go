@@ -133,3 +133,56 @@ func (t *topic) Listen(scheduling string, timezone string) (chan *job, func() er
 		return nil
 	}, nil
 }
+
+func (t *topic) AddSchedule(crontab string, timezone string, active bool, once bool, delay int32) error {
+	u, err := url.JoinPath(t.gravityUrl, "schedules")
+	if err != nil {
+		return err
+	}
+
+	type payloadType struct {
+		Topic        string `json:"topic"`
+		Cron         string `json:"cron"`
+		CronTimezone string `json:"cronTimezone"`
+		Active       bool   `json:"active"`
+		ScheduleOnce bool   `json:"scheduleOnce"`
+		Delay        int32  `json:"delay"`
+	}
+
+	payload := payloadType{
+		Topic:        t.name,
+		Cron:         crontab,
+		CronTimezone: timezone,
+		Active:       active,
+		ScheduleOnce: once,
+		Delay:        delay,
+	}
+
+	b, err := json.Marshal(payload)
+	if err != nil {
+		return err
+	}
+
+	resp, err := http.Post(u, "application/json", bytes.NewReader(b))
+	if err != nil {
+		return err
+	}
+	defer resp.Body.Close()
+
+	if resp.StatusCode != 200 {
+		var apioErr apioError
+
+		body, err := io.ReadAll(resp.Body)
+		if err != nil {
+			return err
+		}
+
+		if err := json.Unmarshal(body, &apioErr); err != nil {
+			return err
+		}
+
+		return errors.New(apioErr.Message)
+	}
+
+	return nil
+}

@@ -1,6 +1,6 @@
-## Go Gravity Worker Helper  
+## Go Gravity SDK
 
-Helps you implement gravity job workers:
+An SDK for work with [Apio Gravity](https://gitlab.com/apio-private/apio-gravity) in Golang.
 
 #### Install
 ```bash
@@ -78,4 +78,11 @@ if err := gravity.Fail(job, nil); err != nil {
 if err := gravity.Return(job); err != nil {
   log.Fatal(err)
 } 
+```
+
+#### Add a schedule
+```golang
+if err := topic.AddSchedule("*/5 * * * * *", "Europe/Rome", true, false, 0); err != nil {
+  t.Fatal(err)
+}
 ```

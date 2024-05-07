@@ -1,7 +1,6 @@
-package test
+package gravitysdk
 
 import (
-	"apio/go-gravity-worker/pkg/gravityworker"
 	"strings"
 	"testing"
 )
@@ -12,7 +11,7 @@ const (
 )
 
 func TestConnection(t *testing.T) {
-	worker := gravityworker.New(GRAVITY_URL)
+	worker := New(GRAVITY_URL)
 
 	if err := worker.Ping(); err != nil {
 		t.Fatal(err)
@@ -20,7 +19,7 @@ func TestConnection(t *testing.T) {
 }
 
 func TestEnqueue(t *testing.T) {
-	worker := gravityworker.New(GRAVITY_URL)
+	worker := New(GRAVITY_URL)
 
 	topic, err := worker.Topic(GRAVITY_TOPIC, true)
 	if err != nil {
@@ -43,7 +42,7 @@ func TestEnqueue(t *testing.T) {
 }
 
 func TestComplete(t *testing.T) {
-	worker := gravityworker.New(GRAVITY_URL)
+	worker := New(GRAVITY_URL)
 
 	topic, err := worker.Topic(GRAVITY_TOPIC, true)
 	if err != nil {
@@ -61,7 +60,7 @@ func TestComplete(t *testing.T) {
 }
 
 func TestFail(t *testing.T) {
-	worker := gravityworker.New(GRAVITY_URL)
+	worker := New(GRAVITY_URL)
 
 	topic, err := worker.Topic(GRAVITY_TOPIC, true)
 	if err != nil {
@@ -79,7 +78,7 @@ func TestFail(t *testing.T) {
 }
 
 func TestRead(t *testing.T) {
-	worker := gravityworker.New(GRAVITY_URL)
+	worker := New(GRAVITY_URL)
 
 	topic, err := worker.Topic(GRAVITY_TOPIC, true)
 	if err != nil {
@@ -107,7 +106,7 @@ func TestRead(t *testing.T) {
 }
 
 func TestSchedules(t *testing.T) {
-	worker := gravityworker.New(GRAVITY_URL)
+	worker := New(GRAVITY_URL)
 
 	topic, err := worker.Topic(GRAVITY_TOPIC, true)
 	if err != nil {

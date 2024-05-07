@@ -1,4 +1,4 @@
-module apio/go-gravity-worker
+module github.com/ApioIoT/go-gravity-sdk
 
 go 1.22.2
 

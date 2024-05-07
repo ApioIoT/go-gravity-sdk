@@ -1,4 +1,4 @@
-package gravityworker
+package gravitysdk
 
 import (
 	"bytes"

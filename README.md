@@ -4,12 +4,12 @@ An SDK for work with [Apio Gravity](https://gitlab.com/apio-private/apio-gravity
 
 #### Install
 ```bash
-go get 
+go get https://github.com/ApioIoT/go-gravity-sdk
 ```
 
 #### Base setup
 ```golang
-gravity := gravityworker.New("http://localhost:7000")
+gravity := gravitysdk.New("http://localhost:7000")
 
 // Test connection
 if err := gravity.Ping(); err != nil {

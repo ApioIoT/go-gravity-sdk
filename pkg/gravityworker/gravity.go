@@ -88,6 +88,10 @@ func (g *gravity) Complete(job *job, out interface{}) error {
 		return errors.New("gravity worker: can't complete null job")
 	}
 
+	if job.Status != IN_PROGRESS {
+		return errors.New("gravity worker: can't complete a not in_progress job")
+	}
+
 	u, err := url.JoinPath(g.url, "jobs", job.Uuid, "complete")
 	if err != nil {
 		return err
@@ -118,12 +122,18 @@ func (g *gravity) Complete(job *job, out interface{}) error {
 		return errors.New("gravity worker: can't complete job")
 	}
 
+	job.Status = COMPLETED
+
 	return nil
 }
 
 func (g *gravity) Fail(job *job, customError interface{}) error {
 	if job == nil {
 		return errors.New("gravity worker: can't fail null job")
+	}
+
+	if job.Status != IN_PROGRESS {
+		return errors.New("gravity worker: can't fail a not in_progress job")
 	}
 
 	u, err := url.JoinPath(g.url, "jobs", job.Uuid, "fail")
@@ -156,12 +166,18 @@ func (g *gravity) Fail(job *job, customError interface{}) error {
 		return errors.New("gravity worker: can't fail job")
 	}
 
+	job.Status = FAILED
+
 	return nil
 }
 
 func (g *gravity) Return(job *job) error {
 	if job == nil {
 		return errors.New("gravity worker: can't return null job")
+	}
+
+	if job.Status != IN_PROGRESS {
+		return errors.New("gravity worker: can't return a not in_progress job")
 	}
 
 	u, err := url.JoinPath(g.url, "jobs", job.Uuid, "return")
@@ -183,6 +199,8 @@ func (g *gravity) Return(job *job) error {
 	if resp.StatusCode >= 400 {
 		return errors.New("gravity worker: can't return job")
 	}
+
+	job.Status = QUEUED
 
 	return nil
 }

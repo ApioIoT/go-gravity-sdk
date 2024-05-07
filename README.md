@@ -1,4 +1,4 @@
-## Go Gravity SDK
+## GoGravity
 
 An SDK for work with [Apio Gravity](https://gitlab.com/apio-private/apio-gravity) in Golang.
 

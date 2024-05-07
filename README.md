@@ -4,7 +4,7 @@ An SDK for work with [Apio Gravity](https://gitlab.com/apio-private/apio-gravity
 
 #### Install
 ```bash
-go get https://github.com/ApioIoT/go-gravity-sdk
+go get github.com/ApioIoT/gogravity
 ```
 
 #### Base setup

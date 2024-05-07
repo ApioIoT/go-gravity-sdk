@@ -1,4 +1,4 @@
-module github.com/ApioIoT/go-gravity-sdk
+module github.com/ApioIoT/gogravity
 
 go 1.22.2
 

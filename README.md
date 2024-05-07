@@ -9,7 +9,7 @@ go get github.com/ApioIoT/gogravity
 
 #### Base setup
 ```golang
-gravity := gravitysdk.New("http://localhost:7000")
+gravity := gogravity.New("http://localhost:7000")
 
 // Test connection
 if err := gravity.Ping(); err != nil {

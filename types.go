@@ -1,4 +1,4 @@
-package gravitysdk
+package gogravity
 
 import (
 	"errors"

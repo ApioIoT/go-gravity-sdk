@@ -14,6 +14,8 @@ import (
 	"github.com/go-co-op/gocron/v2"
 )
 
+const JOBS_BUFFER_SIZE = 100
+
 type topic struct {
 	name       string
 	gravityUrl string
@@ -87,8 +89,8 @@ func (t *topic) Dequeue() (*job, error) {
 	return &apioResp.Data, nil
 }
 
-func (t *topic) Listen(scheduling string, timezone string) (chan *job, func() error, error) {
-	jobsChan := make(chan *job, 100)
+func (t *topic) Listen(scheduling string, timezone string) (<-chan *job, func() error, error) {
+	jobsChan := make(chan *job, JOBS_BUFFER_SIZE)
 
 	location, err := time.LoadLocation(timezone)
 	if err != nil {

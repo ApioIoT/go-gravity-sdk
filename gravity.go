@@ -8,7 +8,6 @@ import (
 	"io"
 	"net/http"
 	"net/url"
-	"time"
 )
 
 type gravity struct {
@@ -21,10 +20,7 @@ func New(url string) gravity {
 	}
 }
 
-func (g *gravity) Ping() error {
-	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
-	defer cancel()
-
+func (g *gravity) Ping(ctx context.Context) error {
 	req, err := http.NewRequestWithContext(ctx, http.MethodGet, g.url, nil)
 	if err != nil {
 		return err

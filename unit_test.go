@@ -1,8 +1,10 @@
 package gogravity
 
 import (
+	"context"
 	"strings"
 	"testing"
+	"time"
 )
 
 const (
@@ -11,9 +13,12 @@ const (
 )
 
 func TestConnection(t *testing.T) {
+	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+	defer cancel()
+
 	worker := New(GRAVITY_URL)
 
-	if err := worker.Ping(); err != nil {
+	if err := worker.Ping(ctx); err != nil {
 		t.Fatal(err)
 	}
 }

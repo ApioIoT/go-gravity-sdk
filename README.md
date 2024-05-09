@@ -12,7 +12,7 @@ go get github.com/ApioIoT/gogravity
 gravity := gogravity.New("http://localhost:7000")
 
 // Test connection
-if err := gravity.Ping(); err != nil {
+if err := gravity.Ping(context.Background()); err != nil {
   log.Fatal(err)
 }
 
